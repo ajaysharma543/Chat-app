@@ -16,34 +16,67 @@ function App() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
- useEffect(() => {
+useEffect(() => {
+  let profileData = null;
+
   const checkSession = async () => {
     try {
-      const account = await authservice.getcurrentuser();
-      const profile = await authservice.getuserprofilebyemail(account.email);
+    const profile = await authservice.getcurrentuser();
+      profileData = profile;
 
-  if (profile) {
-  dispatch(setuser(profile));
-  
-  if (window.location.pathname === '/' || window.location.pathname === '/') {
-    if (profile.imageurl && profile.imageurl.trim() !== "") {
-      navigate('/chat');
-    } 
-  }
+      if (profile) {
+        dispatch(setuser(profile));
+
+        if (window.location.pathname === "/") {
+          if (profile.imageurl && profile.imageurl.trim() !== "") {
+            navigate("/chat");
+          }
+        }
+
+        // Set user ONLINE
+        authservice.updateUserStatus(profile.$id, "online");
       } else {
         dispatch(logout());
-        navigate('/');
+        navigate("/");
       }
     } catch (err) {
       dispatch(logout());
-      navigate('/');
+      navigate("/");
     } finally {
       setLoading(false);
     }
   };
 
   checkSession();
+
+  // Offline when tab closes
+  const goOffline = () => {
+    if (profileData) {
+      authservice.updateUserStatus(profileData.$id, "offline");
+    }
+  };
+
+  const visibilityHandler = () => {
+    if (!profileData) return;
+
+    if (document.visibilityState === "hidden") {
+      authservice.updateUserStatus(profileData.$id, "offline");
+    } else {
+      authservice.updateUserStatus(profileData.$id, "online");
+    }
+  };
+
+  window.addEventListener("beforeunload", goOffline);
+  window.addEventListener("visibilitychange", visibilityHandler);
+
+  // Cleanup
+  return () => {
+    window.removeEventListener("beforeunload", goOffline);
+    window.removeEventListener("visibilitychange", visibilityHandler);
+  };
 }, [dispatch, navigate]);
+
+
 
   if (loading) {
     return <div className="text-center mt-20 text-lg font-semibold">Loading...</div>;

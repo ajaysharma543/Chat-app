@@ -49,7 +49,6 @@ listenToMessages(chatId, callback) {
   return this.client.subscribe(
     `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteuserCollectionId}.documents`,
     (response) => {
-      // Only listen to new messages for this chat
       if (
         response.events.includes('databases.*.collections.*.documents.*.create') &&
         response.payload.chatid === chatId
@@ -134,10 +133,26 @@ async login({email,password}) {
         return this.Account.createEmailPasswordSession(email ,password)
     }
 
-async getcurrentuser(){
-        const useraccount = await this.Account.get();
-        return useraccount;
-    }
+async getcurrentuser() {
+  try {
+    const useraccount = await this.Account.get();
+    if (!useraccount) return null;
+
+    // Get profile document
+    const profile = await this.getuserprofilebyemail(useraccount.email);
+    if (!profile) return null;
+
+    // Mark user online
+    await this.updateUserStatus(profile.$id, "online");
+
+    // Return ACTUAL PROFILE instead of account
+    return profile;
+
+  } catch (error) {
+    console.log("getcurrentuser error:", error);
+    return null;
+  }
+}
 
 async logout(email) {
   try {

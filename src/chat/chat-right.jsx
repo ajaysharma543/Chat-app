@@ -5,6 +5,7 @@ import Messagesend from './messagesend';
 import authservice from '../components/appwrite/auth';
 import Searchbox from './searchbox';
 import Deleteicon from './deleteicon';
+import conf from '../config/conf';
 
 function Chatright() {
   const selectedUser = useSelector((state) => state.auth.selectedUser);
@@ -13,6 +14,7 @@ function Chatright() {
   const [search, setsearch] = useState(false);
   const messagesEndRef = useRef(null);
 const [activeDotsId, setActiveDotsId] = useState(null);
+const [selectedUserState, setSelectedUserState] = useState(null);
 
       const handlesearch = () => {
         setsearch(prev => !prev)    
@@ -20,6 +22,23 @@ const [activeDotsId, setActiveDotsId] = useState(null);
   useEffect(() => {
   messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 }, [messages]);
+useEffect(() => {
+  if (!selectedUser) return;
+
+  const unsub = authservice.client.subscribe(
+    `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteCollectionId}.documents.${selectedUser.$id}`,
+    (event) => {
+      if (event.events.includes("databases.*.documents.*.update")) {
+        setSelectedUserState(event.payload); // NEW — update UI instantly
+      }
+    }
+  );
+
+  return () => unsub();
+}, [selectedUser]);
+useEffect(() => {
+  if (selectedUser) setSelectedUserState(selectedUser);
+}, [selectedUser]);
 
 
 useEffect(() => {
@@ -100,14 +119,14 @@ useEffect(() => {
           />
           <div className="flex flex-col">
             <p className="text-md font-semibold truncate">{selectedUser.name}</p>
-             {user?.lastseen && (
-        //  <p className="text-sm text-black">
-        //   Last seen {formatDistanceToNow(new Date(user.lastseen), { addSuffix: true })}
-        // </p>
-                <p className=" text-sm text-white">
-            Last seen {formatLastSeen(selectedUser.lastseen)}
-          </p>
-      )}
+        {selectedUserState?.status === "online" ? (
+  <p className="text-sm text-green-400">Online</p>
+) : (
+  <p className="text-sm text-white">
+Last seen {selectedUserState?.lastseen ? formatLastSeen(selectedUserState.lastseen) : "loading..."}
+  </p>
+)}
+
           </div>
         </div>
 
