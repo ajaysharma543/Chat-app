@@ -14,9 +14,9 @@ function Chatright() {
   const messagesEndRef = useRef(null);
 const [activeDotsId, setActiveDotsId] = useState(null);
 
-      const handlesearch = () => {
-        setsearch(prev => !prev)    
-        }
+const handlesearch = () => {
+  setsearch(prev => !prev)    
+  }
   useEffect(() => {
   messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 }, [messages]);
@@ -55,7 +55,6 @@ const [activeDotsId, setActiveDotsId] = useState(null);
   const diffHr = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHr / 24);
 
-  if (diffSec < 60) return "just now";
   if (diffMin < 60) return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
   if (diffHr < 24) return `${diffHr} hour${diffHr > 1 ? 's' : ''} ago`;
   if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
@@ -90,14 +89,15 @@ const [activeDotsId, setActiveDotsId] = useState(null);
           />
           <div className="flex flex-col">
             <p className="text-md font-semibold truncate">{selectedUser.name}</p>
-             {user?.lastseen && (
-        //  <p className="text-sm text-black">
-        //   Last seen {formatDistanceToNow(new Date(user.lastseen), { addSuffix: true })}
-        // </p>
-                <p className=" text-sm text-white">
-            Last seen {formatLastSeen(selectedUser.lastseen)}
-          </p>
-      )}
+          {selectedUser?.lastseen && (
+  <p className="text-sm text-white">
+    {selectedUser.status === "online"
+      ? "Online"
+      : `Last seen ${formatLastSeen(selectedUser.lastseen)}`
+    }
+  </p>
+)}
+
           </div>
         </div>
 

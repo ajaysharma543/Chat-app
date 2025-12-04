@@ -115,15 +115,26 @@ async updateuser(id, name, email, number, description, newimageurl, imageurl, Ge
   }
 }
   
-async login({email,password}) {
-        return this.Account.createEmailPasswordSession(email ,password)
+async login({ email, password }) {
+  try {
+    const session = await this.Account.createEmailPasswordSession(email, password);
+    const userDoc = await this.getuserprofilebyemail(email);
+    if (userDoc) {
+      await this.updateUserStatus(userDoc.$id, "online");
     }
+
+    return session;
+  } catch (error) {
+    console.error("Login error:", error);
+    throw error;
+  }
+}
+
 
 async getcurrentuser(){
         const useraccount = await this.Account.get();
         return useraccount;
     }
-
 async logout(email) {
   try {
     if (!email) {
