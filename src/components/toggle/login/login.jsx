@@ -4,74 +4,59 @@ import Inputbox from '../../inputbox';
 import { useForm } from 'react-hook-form';
 import authservice from '../../appwrite/auth';
 import { useDispatch } from 'react-redux';
-import { logout, setuser } from '../../../store/authslice'
+import { setuser } from '../../../store/authslice';
 import { useNavigate } from 'react-router-dom';
 
-const Login = ({onswitch}) => {
+const Login = ({ onswitch }) => {
   const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit } = useForm();
   const dispatch = useDispatch();
-  const [error , seterror] = useState("")
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handlelogin = async (data) => {
-  try {
-    seterror("");
-    const session = await authservice.login(data);
-    if (session) {
-     const account = await authservice.getcurrentuser();
+    try {
+      setError("");
+      const session = await authservice.login(data);
+      if (session) {
+        const account = await authservice.getcurrentuser();
         const userProfile = await authservice.getuserprofilebyemail(account.email);
         if (userProfile) {
           dispatch(setuser(userProfile));
-          navigate('/chat');
-          console.log("Redux state updated with user:", userProfile);
+          if (userProfile.imageurl && userProfile.imageurl !== "") {
+            navigate("/chat");
+          } else {
+            navigate("/image");
+          }
         } else {
-          seterror("User profile not found.");
+          setError("User profile not found.");
         }
-        if (userProfile.imageurl && userProfile.imageurl !== "") {
-        navigate("/chat");
-      } else {
-        navigate("/image");
       }
-      console.log("Redux state updated with user:", user);
-      if (!user) {
-        seterror("User not found in database.");
-        return;
-      }
-      console.log("login", user);
-    }
-  } catch (error) {
-    seterror(error.message || "Login failed");
-  }
-};
-
- const handlelogout = async () => {
-    try {
-      await authservice.logout();
-      dispatch(logout());
-      navigate('/')
-      console.log('Logged out');
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch (err) {
+      setError(err.message || "Login failed");
     }
   };
 
   return (
-    <>
-    <button onClick={handlelogout}>
-      logout
-    </button>
-    <div className="relative min-h-screen flex items-center justify-center  overflow-hidden px-4">
-<div className="z-10 bg-white p-6 sm:p-8 md:p-10 rounded-xl border border-gray-300 w-full max-w-md shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">LOGIN</h2>
-        {error && <p className="text-red-600 text-center mb-4">{error}</p>}
-        <form className="space-y-8" onSubmit={handleSubmit(handlelogin)}>
+    <div className="relative flex items-center justify-center overflow-hidden px-4">
+
+      {/* Floating background effects */}
+      <span className="absolute w-72 h-72 bg-white/10 rounded-full -top-20 -left-20 animate-pulse-slow"></span>
+      <span className="absolute w-60 h-60 bg-white/10 rounded-full -bottom-10 -right-10 animate-pulse-slower"></span>
+
+      {/* Login Card */}
+      <div className="z-10 bg-gray-800/90 backdrop-blur-md p-6 sm:p-8 md:p-10 rounded-2xl border border-gray-700 w-full max-w-md shadow-2xl transition-all duration-500 ease-in-out">
+        <h2 className="text-2xl font-bold mb-6 text-center text-white">LOGIN</h2>
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+
+        <form className="space-y-6" onSubmit={handleSubmit(handlelogin)}>
           {/* Email */}
           <Inputbox
             type="email"
             label="Email"
             icon="fa-solid fa-envelope"
             autoComplete="off"
+            dark
             {...register("email", {
               required: "Email is required",
               pattern: {
@@ -80,18 +65,19 @@ const Login = ({onswitch}) => {
               },
             })}
           />
+
+          {/* Password */}
           <div className="relative">
             <Inputbox
               type={showPassword ? "text" : "password"}
               label="Password"
               autoComplete="new-password"
-              {...register("password", {
-                required: "Password is required",
-              })}
+              dark
+              {...register("password", { required: "Password is required" })}
             />
             <span
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-5 cursor-pointer text-gray-500"
+              onClick={() => setShowPassword(prev => !prev)}
+              className="absolute right-3 top-5 cursor-pointer text-gray-300"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </span>
@@ -100,30 +86,25 @@ const Login = ({onswitch}) => {
           {/* Submit */}
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition duration-200"
+            className="w-full py-3 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:shadow-xl hover:scale-105 transform transition-all duration-300"
           >
             Login
           </button>
         </form>
 
-        <p className="text-sm text-center text-gray-600 mt-4">
+        {/* Switch to Signup */}
+        <p className="text-sm text-center text-white mt-4">
           Don't have an account?{' '}
-           <button
-              type="button"
-              onClick={() => onswitch?.('signup')}
-              className=" font-semibold ml-1 cursor-pointer"
-            >
-              Signup
-            </button>
+          <button
+            type="button"
+            onClick={() => onswitch?.('signup')}
+            className="font-semibold cursor-pointer text-teal-400 hover:underline ml-1"
+          >
+            Signup
+          </button>
         </p>
       </div>
-      <img
-        src="/wave.svg"
-        alt="wave"
-        className="fixed bottom-0 left-0 w-full h-auto z-0"
-      />
     </div>
-    </>
   );
 };
 

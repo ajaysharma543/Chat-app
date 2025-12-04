@@ -20,7 +20,7 @@ const Navbar = () => {
   useEffect(() => {
     if (isLoggedIn) {
       navigate("/chat");
-      console.log("login user data" , user);
+      // console.log("login user data" , user);
     }
     else{
       navigate("/")
@@ -32,26 +32,30 @@ const Navbar = () => {
   return (
     <>
        {/* <Chatheader /> */}
-<div className="w-full min-h-screen flex bg-black text-gray-900 relative">
-  <div className="w-[5%] border-r border-gray-700 bg-black">
+<div className="w-full h-screen flex bg-black text-gray-900">
+  {/* Left Sidebar */}
+  <div className="w-[5%] border-r border-gray-700 bg-black overflow-y-auto scrollbar-none">
     <Chatleft />
   </div>
-  <div className="w-[25%] border-r border-gray-700 bg-black">
-    <Chatmiddle />
+
+  {/* Middle Messages */}
+  <div className="w-[25%] border-r border-gray-700 bg-black flex flex-col h-screen">
+    <div className="px-4 py-2 border-b border-gray-800">
+      <h2 className="text-white font-semibold">Messages</h2>
+    </div>
+
+    {/* Middle scrollable area */}
+    <div className="flex-1 overflow-y-auto scrollbar-none">
+      <Chatmiddle />
+    </div>
   </div>
-  <div className="w-[70%] bg-black">
+
+  {/* Right Side - fixed height, no scroll */}
+  <div className="w-[70%] bg-black h-screen flex flex-col">
     <Chatright />
   </div>
 </div>
 
-      {/* {user?.lastseen && (
-        //  <p className="text-sm text-black">
-        //   Last seen {formatDistanceToNow(new Date(user.lastseen), { addSuffix: true })}
-        // </p>
-                <p className=" text-sm text-black">
-            Last seen {formatLastSeen(user.lastseen)}
-          </p>
-      )} */}
     </>
   );
 };

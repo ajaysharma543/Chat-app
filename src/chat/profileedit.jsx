@@ -41,10 +41,10 @@ function Profileedit() {
     )
     
     if (updated) {
-    console.log('Saving:', updated);
+    // console.log('Saving:', updated);
     setpassword("")
     dispatch(setuser(updated))
-    console.log("new redux" , user );
+    // console.log("new redux" , user );
     
     navigate('/edit')
     }

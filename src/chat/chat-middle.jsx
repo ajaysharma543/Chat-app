@@ -12,7 +12,7 @@ function Chatmiddle() {
 
   return (
     <>
-      <div className="w-full h-[10%] flex items-end justify-between px-6 py-3">
+      <div className="w-full h-[10%] flex items-end bg-black justify-between px-6 py-3">
         <div className="flex items-start space-x-2 cursor-pointer relative" onClick={() => setmsz(prev => !prev)}>
           <span className="text-white text-2xl font-medium">
             {user?.name || 'Guest'}

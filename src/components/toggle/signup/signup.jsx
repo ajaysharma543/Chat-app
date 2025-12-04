@@ -24,7 +24,7 @@ const dispatch = useDispatch()
 
   if (userProfile) {
     dispatch(setuser(userProfile));
-    console.log("Redux state updated with user:", userProfile);
+    // console.log("Redux state updated with user:", userProfile);
     navigate('/image');
   } else {
     setError("User profile not found.");
@@ -36,12 +36,16 @@ const dispatch = useDispatch()
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden px-4">
+    <div className="relative flex items-center justify-center overflow-hidden px-4">
       {/* Login Box */}
-<div className="z-10 bg-white p-6 sm:p-8 md:p-10 rounded-xl border border-gray-300 w-full max-w-md shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Sign-up</h2>
-        {error && <p className="text-red-500 mt-3 text-center">{error}</p>}
-        <form className="space-y-4" onSubmit={handleSubmit(handlesignup)}>
+      {/* Floating background effects */}
+      <span className="absolute w-72 h-72 bg-white/10 rounded-full -top-20 -left-20 animate-pulse-slow"></span>
+      <span className="absolute w-60 h-60 bg-white/10 rounded-full -bottom-10 -right-10 animate-pulse-slower"></span>
+ <div className="z-10 bg-gray-800/90 backdrop-blur-md p-6 sm:p-8 md:p-10 rounded-2xl border border-gray-700 w-full max-w-md shadow-2xl transition-all duration-500 ease-in-out">
+        <h2 className="text-2xl font-bold mb-6 text-center text-white">LOGIN</h2>
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+
+        <form className="space-y-6" onSubmit={handleSubmit(handlesignup)}>
            <Inputbox
             icon="fa-solid fa-user"
             type="text"
@@ -78,7 +82,7 @@ const dispatch = useDispatch()
             />
             <span
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-3.5 cursor-pointer text-gray-500"
+              className="absolute right-3 top-3.5 cursor-pointer text-white"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </span>
@@ -92,23 +96,17 @@ const dispatch = useDispatch()
           </button>
         </form>
 
-        <p className="text-sm text-center text-gray-600 mt-4">
+        <p className="text-sm text-center text-white mt-4">
           Already have an account?{' '}
             <button
               type="button"
               onClick={() => onswitch?.('login')}
-              className=" font-semibold ml-1 cursor-pointer"
+            className="font-semibold cursor-pointer text-teal-400 hover:underline ml-1"
             >
               Login
             </button>
         </p>
       </div>
-
-      <img
-        src="/wave.svg"
-        alt="wave"
-        className="fixed bottom-0 left-0 w-full h-auto z-0"
-      />
     </div>
   );
 };

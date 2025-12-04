@@ -28,7 +28,7 @@ const [activeDotsId, setActiveDotsId] = useState(null);
       try {
         const result = await authservice.getMessagesByChatId(chatId);
         setMessages(result);
-        console.log(chatId);
+        // console.log(chatId);
         
       } catch (error) {
         console.error('Error fetching messages:', error);
@@ -50,7 +50,7 @@ const [activeDotsId, setActiveDotsId] = useState(null);
 
   const diffSec = Math.floor(diffMs / 1000);
   const diffMin = Math.floor(diffSec / 60);
-  console.log(diffMin);
+  // console.log(diffMin);
   
   const diffHr = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHr / 24);
@@ -65,7 +65,7 @@ const [activeDotsId, setActiveDotsId] = useState(null);
 
   if (!selectedUser) {
     return (
-     <div className="flex flex-col items-center justify-center h-full text-white p-6">
+     <div className="flex flex-col items-center justify-center bg-black h-[50%] text-white p-6">
         <MessageCircle size={48} className="text-gray-500 mb-4" />
         <h2 className="text-xl font-semibold mb-2">Your Messages</h2>
         <p className="text-gray-400 text-center">
