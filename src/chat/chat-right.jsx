@@ -14,29 +14,39 @@ function Chatright() {
   const messagesEndRef = useRef(null);
 const [activeDotsId, setActiveDotsId] = useState(null);
 
-const handlesearch = () => {
-  setsearch(prev => !prev)    
-  }
+      const handlesearch = () => {
+        setsearch(prev => !prev)    
+        }
   useEffect(() => {
   messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 }, [messages]);
 
-  useEffect(() => {
-    const fetchMessages = async () => {
-      if (!user || !selectedUser) return;
-      const chatId = [user.$id, selectedUser.$id].sort().join('___');
-      try {
-        const result = await authservice.getMessagesByChatId(chatId);
-        setMessages(result);
-        // console.log(chatId);
-        
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-      }
-    };
 
-    fetchMessages();
-  }, [user, selectedUser]);
+useEffect(() => {
+  if (!user || !selectedUser) return;
+
+  const chatId = [user.$id, selectedUser.$id].sort().join('___');
+
+  const fetchMessages = async () => {
+    try {
+      const msgs = await authservice.getMessagesByChatId(chatId);
+      setMessages(msgs);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  fetchMessages();
+
+  const unsubscribe = authservice.listenToMessages(chatId, (newMsg) => {
+    setMessages((prev) => {
+      if (prev.find((msg) => msg.$id === newMsg.$id)) return prev;
+      return [...prev, newMsg];
+    });
+  });
+
+  return () => unsubscribe();
+}, [user, selectedUser]);
+
 
   const handleDotsClick = (id) => {
   setActiveDotsId(prev => (prev === id ? null : id));
@@ -55,6 +65,7 @@ const handlesearch = () => {
   const diffHr = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHr / 24);
 
+  if (diffSec < 60) return "just now";
   if (diffMin < 60) return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
   if (diffHr < 24) return `${diffHr} hour${diffHr > 1 ? 's' : ''} ago`;
   if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
@@ -89,15 +100,14 @@ const handlesearch = () => {
           />
           <div className="flex flex-col">
             <p className="text-md font-semibold truncate">{selectedUser.name}</p>
-          {selectedUser?.lastseen && (
-  <p className="text-sm text-white">
-    {selectedUser.status === "online"
-      ? "Online"
-      : `Last seen ${formatLastSeen(selectedUser.lastseen)}`
-    }
-  </p>
-)}
-
+             {user?.lastseen && (
+        //  <p className="text-sm text-black">
+        //   Last seen {formatDistanceToNow(new Date(user.lastseen), { addSuffix: true })}
+        // </p>
+                <p className=" text-sm text-white">
+            Last seen {formatLastSeen(selectedUser.lastseen)}
+          </p>
+      )}
           </div>
         </div>
 
@@ -165,7 +175,7 @@ const handlesearch = () => {
 </div>
 
       <div className=" p-4">
-        <Messagesend onMessageSent={(newMessage) =>setMessages((prev) => [...prev, newMessage])}
+        <Messagesend onMessageSent={() => {}}
 />
       </div>
     </div>

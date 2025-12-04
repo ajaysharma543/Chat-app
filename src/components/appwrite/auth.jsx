@@ -44,6 +44,21 @@ async createuser(data) {
     throw error;
   }
 }
+// Inside AuthService class
+listenToMessages(chatId, callback) {
+  return this.client.subscribe(
+    `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteuserCollectionId}.documents`,
+    (response) => {
+      // Only listen to new messages for this chat
+      if (
+        response.events.includes('databases.*.collections.*.documents.*.create') &&
+        response.payload.chatid === chatId
+      ) {
+        callback(response.payload); // send new message to callback
+      }
+    }
+  );
+}
 
 async deleteFile(id) {
   if (!id) {
@@ -115,26 +130,15 @@ async updateuser(id, name, email, number, description, newimageurl, imageurl, Ge
   }
 }
   
-async login({ email, password }) {
-  try {
-    const session = await this.Account.createEmailPasswordSession(email, password);
-    const userDoc = await this.getuserprofilebyemail(email);
-    if (userDoc) {
-      await this.updateUserStatus(userDoc.$id, "online");
+async login({email,password}) {
+        return this.Account.createEmailPasswordSession(email ,password)
     }
-
-    return session;
-  } catch (error) {
-    console.error("Login error:", error);
-    throw error;
-  }
-}
-
 
 async getcurrentuser(){
         const useraccount = await this.Account.get();
         return useraccount;
     }
+
 async logout(email) {
   try {
     if (!email) {
