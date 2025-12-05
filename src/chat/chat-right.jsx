@@ -47,28 +47,23 @@ useEffect(() => {
 useEffect(() => {
   if (!user || !selectedUser) return;
 
-  const chatId = [user.$id, selectedUser.$id].sort().join('___');
+  const chatId = [user.$id, selectedUser.$id].sort().join("___");
 
-  const fetchMessages = async () => {
-    try {
-      const msgs = await authservice.getMessagesByChatId(chatId);
-      setMessages(msgs);
-    } catch (error) {
-      console.error(error);
+  const unsubscribe = authservice.client.subscribe(
+    `databases.${conf.appwriteDatabaseId}.collections.${conf.messagesCollectionId}.documents`,
+    (event) => {
+      if (event.events.includes("databases.*.documents.*.create")) {
+        const msg = event.payload;
+
+        if (msg.chatid === chatId) {
+          setMessages((prev) => [...prev, msg]);
+        }
+      }
     }
-  };
-  fetchMessages();
-
-  const unsubscribe = authservice.listenToMessages(chatId, (newMsg) => {
-    setMessages((prev) => {
-      if (prev.find((msg) => msg.$id === newMsg.$id)) return prev;
-      return [...prev, newMsg];
-    });
-  });
+  );
 
   return () => unsubscribe();
 }, [user, selectedUser]);
-
 
   const handleDotsClick = (id) => {
   setActiveDotsId(prev => (prev === id ? null : id));
