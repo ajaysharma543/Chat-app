@@ -2,12 +2,35 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import authservice from '../components/appwrite/auth';
 import { setSelectedUser } from '../store/authslice';
+import conf from '../config/conf';
 
 function Middlechats() {
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   const [otherUsers, setOtherUsers] = useState([]);
   const [usersWithMessages, setUsersWithMessages] = useState([]);
+
+
+  useEffect(() => {
+  const unsub = authservice.client.subscribe(
+    `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteCollectionId}.documents`,
+    (event) => {
+      if (event.events.includes("databases.*.documents.*.update")) {
+        const updatedUser = event.payload;
+
+        setOtherUsers((prev) =>
+          prev.map((u) => (u.$id === updatedUser.$id ? updatedUser : u))
+        );
+
+        setUsersWithMessages((prev) =>
+          prev.map((u) => (u.$id === updatedUser.$id ? updatedUser : u))
+        );
+      }
+    }
+  );
+
+  return () => unsub();
+}, []);
 
   useEffect(() => {
     const fetchUsers = async () => {
