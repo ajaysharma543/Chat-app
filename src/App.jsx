@@ -57,16 +57,14 @@ function App() {
       }
     };
 
-    // User goes offline/online on visibility change
-    const visibilityHandler = () => {
-      if (!profileDataRef.current) return;
+  const visibilityHandler = () => {
+  if (!profileDataRef.current) return;
 
-      if (document.visibilityState === "hidden") {
-        authservice.updateUserStatus(profileDataRef.current.$id, "offline");
-      } else {
-        authservice.updateUserStatus(profileDataRef.current.$id, "online");
-      }
-    };
+  if (document.visibilityState === "visible") {
+    authservice.updateUserStatus(profileDataRef.current.$id, "online");
+  }
+};
+
 
     window.addEventListener("beforeunload", goOffline);
     window.addEventListener("visibilitychange", visibilityHandler);

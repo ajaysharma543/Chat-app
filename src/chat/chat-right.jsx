@@ -32,7 +32,7 @@ useEffect(() => {
     (event) => {
       if (event.events.includes("databases.*.documents.*.update")) {
         setSelectedUserState(event.payload);
-        dispatch(setSelectedUser(event.payload));  // NEW — update UI instantly
+        dispatch(setSelectedUser(event.payload));  
       }
     }
   );
