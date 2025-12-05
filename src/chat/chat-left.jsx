@@ -15,8 +15,8 @@ function Chatleft() {
 
   return (
     <div className="flex flex-col items-center pt-10 space-y-9 h-full ">
-      <Instagram onClick={() => navigate("/chat")} className="w-9 h-9 text-white hover:text-pink-500 transition duration-200 cursor-pointer pb-3" />
-      <Home className="w-7 h-8 text-white hover:text-blue-400 transition duration-200 cursor-pointer" onClick={() => navigate("/chat")}/>
+      <Instagram onClick={() => navigate("/")} className="w-9 h-9 text-white hover:text-pink-500 transition duration-200 cursor-pointer pb-3" />
+      <Home className="w-7 h-8 text-white hover:text-blue-400 transition duration-200 cursor-pointer" onClick={() => navigate("/")}/>
       <Search className="w-7 h-8 text-white hover:text-blue-400 transition duration-200 cursor-pointer" onClick={handlesearch} />
       {search && <Searchbox onClose={() => setsearch(false)}  /> }
 <MessageCircle className="w-7 h-8 text-white hover:text-blue-400 transition duration-200"  />   
