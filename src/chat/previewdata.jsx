@@ -14,7 +14,7 @@ function Profileview() {
                 <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-4xl flex flex-col gap-6">
         <div className="relative w-full flex items-center justify-center mb-4">
   <button
-    onClick={() => navigate("/chat")}
+    onClick={() => navigate("/")}
     className="absolute left-0 px-4 py-1 bg-teal-500 text-white rounded hover:bg-teal-700 transition"
   >
     ← Back
