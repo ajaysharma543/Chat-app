@@ -132,9 +132,9 @@ async updateuser(id, name, email, number, description, newimageurl, imageurl, Ge
 async login({ email, password }) {
   const session = await this.Account.createEmailPasswordSession(email, password);
 
-  const profile = await this.getuserprofilebyemail(email);
-  if (profile) {
-    await this.updateUserStatus(profile.$id, "online");
+  const userDoc = await this.getuserprofilebyemail(email);
+  if (userDoc) {
+    await this.updateUserStatus(userDoc.$id, "online");
   }
 
   return session;
@@ -145,13 +145,20 @@ async getcurrentuser() {
     const useraccount = await this.Account.get();
     if (!useraccount) return null;
 
-    return await this.getuserprofilebyemail(useraccount.email);
+    const profile = await this.getuserprofilebyemail(useraccount.email);
+
+    if (profile) {
+      await this.updateUserStatus(profile.$id, "online");
+    }
+
+    return profile;
 
   } catch (error) {
     console.log("getcurrentuser error:", error);
     return null;
   }
 }
+
 
 async logout(email) {
   try {

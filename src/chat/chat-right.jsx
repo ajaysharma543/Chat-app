@@ -1,11 +1,12 @@
 import {DotSquare,GalleryThumbnails,MessageCircle,MessageCircleWarning,Phone,Video,} from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Messagesend from './messagesend';
 import authservice from '../components/appwrite/auth';
 import Searchbox from './searchbox';
 import Deleteicon from './deleteicon';
 import conf from '../config/conf';
+import { setSelectedUser } from '../store/authslice';
 
 function Chatright() {
   const selectedUser = useSelector((state) => state.auth.selectedUser);
@@ -15,6 +16,7 @@ function Chatright() {
   const messagesEndRef = useRef(null);
 const [activeDotsId, setActiveDotsId] = useState(null);
 const [selectedUserState, setSelectedUserState] = useState(null);
+const dispatch = useDispatch();
 
       const handlesearch = () => {
         setsearch(prev => !prev)    
@@ -29,13 +31,14 @@ useEffect(() => {
     `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteCollectionId}.documents.${selectedUser.$id}`,
     (event) => {
       if (event.events.includes("databases.*.documents.*.update")) {
-        setSelectedUserState(event.payload); // NEW — update UI instantly
+        setSelectedUserState(event.payload);
+        dispatch(setSelectedUser(event.payload));  // NEW — update UI instantly
       }
     }
   );
 
   return () => unsub();
-}, [selectedUser]);
+}, [selectedUser,dispatch]);
 useEffect(() => {
   if (selectedUser) setSelectedUserState(selectedUser);
 }, [selectedUser]);
