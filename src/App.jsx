@@ -17,62 +17,54 @@ function App() {
   const [loading, setLoading] = useState(true);
 
 useEffect(() => {
-  let profileData = null;
+  let currentProfile = null;
 
-  const checkSession = async () => {
-    try {
+  const checkUser = async () => {
     const profile = await authservice.getcurrentuser();
-      profileData = profile;
+    currentProfile = profile;
 
-      if (profile) {
-        dispatch(setuser(profile));
+    if (profile) {
+      dispatch(setuser(profile));
 
-        if (window.location.pathname === "/") {
-          if (profile.imageurl && profile.imageurl.trim() !== "") {
-            navigate("/chat");
-          }
-        }
+      // Make sure user becomes online
+      authservice.updateUserStatus(profile.$id, "online");
 
-        // Set user ONLINE
-        authservice.updateUserStatus(profile.$id, "online");
-      } else {
-        dispatch(logout());
-        navigate("/");
+      if (window.location.pathname === "/") {
+        navigate("/chat");
       }
-    } catch (err) {
+    } else {
       dispatch(logout());
       navigate("/");
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
-  checkSession();
+  checkUser();
 
-  // Offline when tab closes
+  // When closing tab or browser => offline
   const goOffline = () => {
-    if (profileData) {
-      authservice.updateUserStatus(profileData.$id, "offline");
+    if (currentProfile) {
+      authservice.updateUserStatus(currentProfile.$id, "offline");
     }
   };
 
-  const visibilityHandler = () => {
-    if (!profileData) return;
-
+  // When switching tab => offline/online
+  const handleVisibility = () => {
+    if (!currentProfile) return;
     if (document.visibilityState === "hidden") {
-      authservice.updateUserStatus(profileData.$id, "offline");
+      authservice.updateUserStatus(currentProfile.$id, "offline");
     } else {
-      authservice.updateUserStatus(profileData.$id, "online");
+      authservice.updateUserStatus(currentProfile.$id, "online");
     }
   };
 
   window.addEventListener("beforeunload", goOffline);
-  window.addEventListener("visibilitychange", visibilityHandler);
+  window.addEventListener("visibilitychange", handleVisibility);
 
-  // Cleanup
   return () => {
     window.removeEventListener("beforeunload", goOffline);
-    window.removeEventListener("visibilitychange", visibilityHandler);
+    window.removeEventListener("visibilitychange", handleVisibility);
   };
 }, [dispatch, navigate]);
 

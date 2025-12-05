@@ -12,7 +12,7 @@ export class AuthService{
         .setEndpoint(conf.appwriteUrl)
         .setProject(conf.appwriteProjectId)
         this.Account = new Account(this.client)
-        this.database = new Databases(this.client)
+        this.Databases = new Databases(this.client)
          this.storage = new Storage(this.client);
     }
 async createuser(data) {
@@ -21,7 +21,7 @@ async createuser(data) {
     const user = await this.Account.create(ID.unique(), email, password, name);
     if (user) {
       await this.login({ email, password });
-      await this.database.createDocument(
+      await this.Databases.createDocument(
         conf.appwriteDatabaseId,
         conf.appwriteCollectionId,
         ID.unique(),
@@ -77,7 +77,7 @@ async deleteFile(id) {
 
 async updateuser(id, name, email, number, description, newimageurl, imageurl, Gender, currentPassword) {
   try {
-    const existingDoc = await this.database.getDocument(
+    const existingDoc = await this.Databases.getDocument(
       conf.appwriteDatabaseId,
       conf.appwriteCollectionId,
       id
@@ -107,7 +107,7 @@ async updateuser(id, name, email, number, description, newimageurl, imageurl, Ge
       console.error("Auth update failed:", authError);
     }
 
-    const updatedDoc = await this.database.updateDocument(
+    const updatedDoc = await this.Databases.updateDocument(
       conf.appwriteDatabaseId,
       conf.appwriteCollectionId,
       id,
@@ -129,24 +129,23 @@ async updateuser(id, name, email, number, description, newimageurl, imageurl, Ge
   }
 }
   
-async login({email,password}) {
-        return this.Account.createEmailPasswordSession(email ,password)
-    }
+async login({ email, password }) {
+  const session = await this.Account.createEmailPasswordSession(email, password);
+
+  const profile = await this.getuserprofilebyemail(email);
+  if (profile) {
+    await this.updateUserStatus(profile.$id, "online");
+  }
+
+  return session;
+}
 
 async getcurrentuser() {
   try {
     const useraccount = await this.Account.get();
     if (!useraccount) return null;
 
-    // Get profile document
-    const profile = await this.getuserprofilebyemail(useraccount.email);
-    if (!profile) return null;
-
-    // Mark user online
-    await this.updateUserStatus(profile.$id, "online");
-
-    // Return ACTUAL PROFILE instead of account
-    return profile;
+    return await this.getuserprofilebyemail(useraccount.email);
 
   } catch (error) {
     console.log("getcurrentuser error:", error);
@@ -175,7 +174,7 @@ async logout(email) {
 
 async updateUserStatus(userDocId, newStatus) {
   try {
-    await this.database.updateDocument(
+    await this.Databases.updateDocument(
       conf.appwriteDatabaseId,
       conf.appwriteCollectionId,
       userDocId,
@@ -201,7 +200,7 @@ async updateUserStatus(userDocId, newStatus) {
 
  async updateUserimage(userDocId, fileId) {
     try {
-      await this.database.updateDocument(
+      await this.Databases.updateDocument(
         conf.appwriteDatabaseId,
         conf.appwriteCollectionId,
         userDocId,
@@ -217,7 +216,7 @@ async updateUserStatus(userDocId, newStatus) {
 
  async getuserprofilebyemail(email) {
   try {
-    const response = await this.database.listDocuments(
+    const response = await this.Databases.listDocuments(
       conf.appwriteDatabaseId,
       conf.appwriteCollectionId,
       [Query.equal("email", email)]
@@ -232,7 +231,7 @@ async updateUserStatus(userDocId, newStatus) {
 
 async getAllUsersExceptCurrent(email) {
   try {
-    const response = await this.database.listDocuments(
+    const response = await this.Databases.listDocuments(
       conf.appwriteDatabaseId,
       conf.appwriteCollectionId,
       [
@@ -248,7 +247,7 @@ async getAllUsersExceptCurrent(email) {
 
 async storemessageindatabase(senderid, receiverid, content, time, chatid, imageId = null) {
   try {
-    return await this.database.createDocument(
+    return await this.Databases.createDocument(
       conf.appwriteDatabaseId,
       conf.appwriteuserCollectionId,
       ID.unique(),
@@ -269,7 +268,7 @@ async storemessageindatabase(senderid, receiverid, content, time, chatid, imageI
 
 async getMessagesByChatId(chatid) {
   try {
-    const response = await this.database.listDocuments(
+    const response = await this.Databases.listDocuments(
       conf.appwriteDatabaseId,
       conf.appwriteuserCollectionId,
       [
@@ -286,7 +285,7 @@ async getMessagesByChatId(chatid) {
 
 async getLastMessageByChatIdInProfile(chatid) {
   try {
-    const response = await this.database.listDocuments(
+    const response = await this.Databases.listDocuments(
       conf.appwriteDatabaseId,
       conf.appwriteuserCollectionId,
       [
@@ -305,7 +304,7 @@ async getLastMessageByChatIdInProfile(chatid) {
 
 async deletemessage (id) {
   try {
-    await this.database.deleteDocument(
+    await this.Databases.deleteDocument(
        conf.appwriteDatabaseId,
           conf.appwriteuserCollectionId,
           id,
