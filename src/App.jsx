@@ -28,9 +28,9 @@ function App() {
           dispatch(setuser(profile));
 
           // Redirect only if user is on home "/"
-          if (window.location.pathname === "/") {
+          if (window.location.pathname === "/toggle") {
             if (profile.imageurl && profile.imageurl.trim() !== "") {
-              navigate("/chat");
+              navigate("/");
             }
           }
 
@@ -38,11 +38,11 @@ function App() {
           authservice.updateUserStatus(profile.$id, "online");
         } else {
           dispatch(logout());
-          navigate("/");
+          navigate("/toggle");
         }
       } catch (err) {
         dispatch(logout());
-        navigate("/");
+        navigate("/toggle");
       } finally {
         setLoading(false);
       }
@@ -80,10 +80,10 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<Toggle />} />
+          <Route path="/" element={<Navbar />} />
+      <Route path="/toggle" element={<Toggle />} />
     <Route element={<PrivateRoute />}>
     <Route path="/image" element={<Imagesection />} />
-    <Route path="/chat" element={<Navbar />} />
     <Route path='/editdata' element={<Profileedit />} />
     <Route path="/edit" element={<Profileview />} />
   </Route>

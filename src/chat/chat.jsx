@@ -19,11 +19,11 @@ const Navbar = () => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      navigate("/chat");
+      navigate("/");
       // console.log("login user data" , user);
     }
     else{
-      navigate("/")
+      navigate("/toggle")
     }
   }, [isLoggedIn, navigate]);
 
