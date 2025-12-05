@@ -41,7 +41,7 @@ function Imagesection() {
         }
         await authservice.updateUserimage(user.$id, uploadedFile.$id);
         dispatch(updateUserImage(uploadedFile.$id));
-        navigate('/chat');
+        navigate('/');
         console.log(user);
         
       }

@@ -24,7 +24,7 @@ const Login = ({ onswitch }) => {
         if (userProfile) {
           dispatch(setuser(userProfile));
           if (userProfile.imageurl && userProfile.imageurl !== "") {
-            navigate("/chat");
+            navigate("/");
           } else {
             navigate("/image");
           }
