@@ -48,6 +48,7 @@ function Middlechats() {
   }, [user]);
 
 const enrichUsersWithLastMessages = async () => {
+  
   try {
     const usersmessage = [];
 
@@ -69,7 +70,7 @@ if (session && session.senderId !== user.$id) {
     : 'No messages yet',
   lastMessageTime: session ? new Date(session.$createdAt) : null,
   unread: session && session.senderId !== user.$id && !session.readBy?.includes(user.$id),
-  sentByMe: session && session.senderId === user.$id, // added this
+sentByMe: session && session.senderid === user.$id
 });
 
     }
@@ -138,12 +139,17 @@ onClick={async () => {
     <p className="text-white text-md">{u.name}</p>
 
   <p
-  className={`text-sm truncate max-w-[200px] 
-    ${u.sentByMe ? 'text-red-500 font-semibold' : ''} 
-    ${u.unread && !u.sentByMe ? 'text-gray-400 px-1 rounded' : 'text-gray-400'}`}
+  className={`text-sm truncate max-w-[200px] ${
+    u.sentByMe
+      ? 'text-gray-400'
+      : u.unread
+      ? 'text-white font-extrabold px-1 rounded'
+      : 'text-gray-400'
+  }`}
 >
   {u.lastMessage}
 </p>
+
   </div>
 </div>
 

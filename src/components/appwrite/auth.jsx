@@ -49,7 +49,7 @@ listenToMessages(chatId, callback) {
   return this.client.subscribe(
     `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteuserCollectionId}.documents`,
     (response) => {
-      console.log("Realtime response:", response); // Debug line
+      // console.log("Realtime response:", response); // Debug line
 
       if (response.events.includes('databases.*.collections.*.documents.*.create')) {
         const newMsg = response.payload;
