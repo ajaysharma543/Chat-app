@@ -141,7 +141,7 @@ onClick={async () => {
   <p
   className={`text-sm truncate max-w-[200px] ${
     u.sentByMe
-      ? 'text-gray-400'
+      ? 'text-gray-500 '
       : u.unread
       ? 'text-white font-extrabold px-1 rounded'
       : 'text-gray-400'
