@@ -43,11 +43,10 @@ useEffect(() => {
   if (selectedUser) setSelectedUserState(selectedUser);
 }, [selectedUser]);
 
-
 useEffect(() => {
   if (!user || !selectedUser) return;
 
-  const chatId = [user.$id, selectedUser.$id].sort().join('___');
+  const chatId = [user.$id, selectedUser.$id].sort().join("___");
 
   const fetchMessages = async () => {
     try {
@@ -57,12 +56,12 @@ useEffect(() => {
       console.error(error);
     }
   };
+
   fetchMessages();
 
   const unsubscribe = authservice.listenToMessages(chatId, (newMsg) => {
     setMessages((prev) => {
-      if (prev.find((msg) => msg.$id === newMsg.$id)) return prev;
-      return [...prev, newMsg];
+      return [...prev.filter(m => m.$id !== newMsg.$id), newMsg];
     });
   });
 
@@ -197,8 +196,9 @@ Last seen {selectedUserState?.lastseen ? formatLastSeen(selectedUserState.lastse
 </div>
 
       <div className=" p-4">
-        <Messagesend onMessageSent={() => {}}
-/>
+<Messagesend onMessageSent={(msg) => {
+  setMessages(prev => [...prev, msg]);
+}}/>
       </div>
     </div>
   );
