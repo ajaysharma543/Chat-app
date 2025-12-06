@@ -7,34 +7,31 @@ import conf from '../config/conf';
 function Middlechats() {
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
-
   const [otherUsers, setOtherUsers] = useState([]);
   const [usersWithMessages, setUsersWithMessages] = useState([]);
-  const [loading, setLoading] = useState(true); // 🔥 NEW STATE
 
-  // ---------------- REALTIME USER UPDATES ----------------
+
   useEffect(() => {
-    const unsub = authservice.client.subscribe(
-      `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteCollectionId}.documents`,
-      (event) => {
-        if (event.events.includes("databases.*.documents.*.update")) {
-          const updatedUser = event.payload;
+  const unsub = authservice.client.subscribe(
+    `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteCollectionId}.documents`,
+    (event) => {
+      if (event.events.includes("databases.*.documents.*.update")) {
+        const updatedUser = event.payload;
 
-          setOtherUsers((prev) =>
-            prev.map((u) => (u.$id === updatedUser.$id ? updatedUser : u))
-          );
+        setOtherUsers((prev) =>
+          prev.map((u) => (u.$id === updatedUser.$id ? updatedUser : u))
+        );
 
-          setUsersWithMessages((prev) =>
-            prev.map((u) => (u.$id === updatedUser.$id ? updatedUser : u))
-          );
-        }
+        setUsersWithMessages((prev) =>
+          prev.map((u) => (u.$id === updatedUser.$id ? updatedUser : u))
+        );
       }
-    );
+    }
+  );
 
-    return () => unsub();
-  }, []);
+  return () => unsub();
+}, []);
 
-  // ---------------- FETCH USERS ONCE ----------------
   useEffect(() => {
     const fetchUsers = async () => {
       if (!user?.email) return;
@@ -42,130 +39,125 @@ function Middlechats() {
       try {
         const others = await authservice.getAllUsersExceptCurrent(user.email);
         setOtherUsers(others);
-        setUsersWithMessages(others);
       } catch (error) {
-        console.error("Failed to fetch other users:", error);
-      } finally {
-        setLoading(false); // 🔥 STOP LOADING
+        console.error('Failed to fetch other users:', error);
       }
     };
 
     fetchUsers();
   }, [user]);
 
-  // ---------------- LOAD LAST MESSAGES ----------------
-  const enrichUsersWithLastMessages = async () => {
-    if (!otherUsers.length) return;
+const enrichUsersWithLastMessages = async () => {
+  
+  try {
+    const usersmessage = [];
 
-    try {
-      const updated = await Promise.all(
-        otherUsers.map(async (otherUser) => {
-          const chatId = [user.$id, otherUser.$id].sort().join("___");
-          const session = await authservice.getLastMessageByChatIdInProfile(chatId);
+    for (const otherUser of otherUsers) {
+      const chatId = [user.$id, otherUser.$id].sort().join('___');
+      const session = await authservice.getLastMessageByChatIdInProfile(chatId);
 
-          return {
-            ...otherUser,
-            lastMessage: session
-              ? session.content || (session.imageid ? "📷 Image" : "")
-              : "No messages yet",
-            lastMessageTime: session ? new Date(session.$createdAt) : null,
-            unread:
-              session &&
-              session.senderId !== user.$id &&
-              !session.readBy?.includes(user.$id),
-            sentByMe: session && session.senderid === user.$id,
-          };
-        })
-      );
+      let isUnread = false;
+if (session && session.senderId !== user.$id) {
+  // message sent BY other user
+  isUnread = !session.readBy?.includes(user.$id);
+} 
 
-      updated.sort((a, b) => {
-        if (!a.lastMessageTime) return 1;
-        if (!b.lastMessageTime) return -1;
-        return b.lastMessageTime - a.lastMessageTime;
-      });
 
-      setUsersWithMessages(updated);
-    } catch (e) {
-      console.error(e);
+   usersmessage.push({
+  ...otherUser,
+  lastMessage: session
+    ? session.content || (session.imageid ? '📷 Image' : '')
+    : 'No messages yet',
+  lastMessageTime: session ? new Date(session.$createdAt) : null,
+  unread: session && session.senderId !== user.$id && !session.readBy?.includes(user.$id),
+sentByMe: session && session.senderid === user.$id
+});
+
     }
-  };
 
-  // ---------------- RUN MESSAGE LOADING ----------------
-  useEffect(() => {
-    enrichUsersWithLastMessages();
-  }, [otherUsers, user?.$id]);
+    // sort by last message time descending
+    usersmessage.sort((a, b) => {
+      if (!a.lastMessageTime) return 1;
+      if (!b.lastMessageTime) return -1;
+      return b.lastMessageTime - a.lastMessageTime;
+    });
 
-  // ---------------- REALTIME MESSAGE UPDATES ----------------
-  useEffect(() => {
-    const unsub = authservice.client.subscribe(
-      `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteuserCollectionId}.documents`,
-      (event) => {
-        if (
-          event.events.includes("databases.*.documents.*.create") ||
-          event.events.includes("databases.*.documents.*.update")
-        ) {
-          enrichUsersWithLastMessages();
-        }
+    setUsersWithMessages(usersmessage);
+  } catch (error) {
+    console.error('Failed to fetch enriched users:', error);
+  }
+};
+
+
+
+useEffect(() => {
+  enrichUsersWithLastMessages();
+  const interval = setInterval(enrichUsersWithLastMessages, 1000);
+  return () => clearInterval(interval);
+}, [user?.$id, otherUsers]);
+
+useEffect(() => {
+  const unsub = authservice.client.subscribe(
+    `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteuserCollectionId}.documents`,
+    (event) => {
+      if (event.events.includes("databases.*.documents.*.create") ||
+          event.events.includes("databases.*.documents.*.update")) {
+        enrichUsersWithLastMessages();
       }
-    );
+    }
+  );
 
-    return () => unsub();
-  }, []);
+  return () => unsub();
+}, []);
 
-  // ---------------- UI RENDER ----------------
+
   return (
-    <div className="w-full max-h-[85vh] overflow-y-auto px-6 pt-4 text-white scrollbar-none">
-      <h2 className="text-md font-semibold mb-4">Messages</h2>
+   <div className="w-full max-h-[85vh] overflow-y-auto px-6 pt-4 text-white scrollbar-none">
+  <h2 className="text-md font-semibold mb-4">Messages</h2>
 
-      {/* 🔥 SHOW LOADING */}
-      {loading && (
-        <div className="text-gray-400 animate-pulse">Loading users...</div>
-      )}
+  <div className="space-y-1">
+    {usersWithMessages.length === 0 ? (
+      <p className="text-gray-400">No other users found.</p>
+    ) : (
+      usersWithMessages.map((u) => (
+    <div
+  key={u.$id}
+onClick={async () => {
+  dispatch(setSelectedUser(u));
+  await authservice.markChatAsRead(user.$id, u.$id); // mark read
+  enrichUsersWithLastMessages(); // refresh UI immediately
+}}
+  className="flex items-center space-x-3 rounded-lg cursor-pointer px-2 py-2 hover:bg-gray-800 transition"
+>
+  <img
+    src={`https://fra.cloud.appwrite.io/v1/storage/buckets/684297610026f3b5092c/files/${u.imageurl}/download?project=684296e5003206790aa0`}
+    alt={u.name}
+    className="w-12 h-12 rounded-full object-cover"
+  />
 
-      {/* 🔥 AFTER LOADING: NO USERS */}
-      {!loading && usersWithMessages.length === 0 && (
-        <p className="text-gray-400">No other users found.</p>
-      )}
+  <div className="pl-1 w-full">
+    <p className="text-white text-md">{u.name}</p>
 
-      {/* 🔥 USERS LOADED */}
-      {!loading && usersWithMessages.length > 0 && (
-        <div className="space-y-1">
-          {usersWithMessages.map((u) => (
-            <div
-              key={u.$id}
-              onClick={async () => {
-                dispatch(setSelectedUser(u));
-                await authservice.markChatAsRead(user.$id, u.$id);
-                enrichUsersWithLastMessages();
-              }}
-              className="flex items-center space-x-3 rounded-lg cursor-pointer px-2 py-2 hover:bg-gray-800 transition"
-            >
-              <img
-                src={`https://fra.cloud.appwrite.io/v1/storage/buckets/684297610026f3b5092c/files/${u.imageurl}/download?project=684296e5003206790aa0`}
-                alt={u.name}
-                className="w-12 h-12 rounded-full object-cover"
-              />
+  <p
+  className={`text-sm truncate max-w-[200px] ${
+    u.sentByMe
+      ? 'text-gray-500 '
+      : u.unread
+      ? 'text-white font-extrabold px-1 rounded'
+      : 'text-gray-400'
+  }`}
+>
+  {u.lastMessage}
+</p>
 
-              <div className="pl-1 w-full">
-                <p className="text-white text-md">{u.name}</p>
+  </div>
+</div>
 
-                <p
-                  className={`text-sm truncate max-w-[200px] ${
-                    u.sentByMe
-                      ? "text-gray-500"
-                      : u.unread
-                      ? "text-white font-extrabold px-1 rounded"
-                      : "text-gray-400"
-                  }`}
-                >
-                  {u.lastMessage}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+      ))
+    )}
+  </div>
+</div>
+
   );
 }
 
