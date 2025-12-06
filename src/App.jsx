@@ -10,6 +10,7 @@ import Imagesection from './components/imagesection/imagesection';
 import Profileedit from './chat/profileedit';
 import PrivateRoute from './chat/privateroute';
 import Profileview from './chat/previewdata';
+import Loader from './chat/loader';
 
 function App() {
   const dispatch = useDispatch();
@@ -27,15 +28,14 @@ function App() {
         if (profile) {
           dispatch(setuser(profile));
 
-          // Redirect only if user is on home "/"
           if (window.location.pathname === "/toggle") {
             if (profile.imageurl && profile.imageurl.trim() !== "") {
               navigate("/");
             }
           }
 
-          // Always set online after loading profile
           authservice.updateUserStatus(profile.$id, "online");
+
         } else {
           dispatch(logout());
           navigate("/toggle");
@@ -50,14 +50,12 @@ function App() {
 
     checkSession();
 
-    // User goes offline when closing tab
     const goOffline = () => {
       if (profileDataRef.current) {
         authservice.updateUserStatus(profileDataRef.current.$id, "offline");
       }
     };
 
-    // User goes offline/online on visibility change
     const visibilityHandler = () => {
       if (!profileDataRef.current) return;
 
@@ -77,18 +75,25 @@ function App() {
     };
   }, [dispatch, navigate]);
 
+  // 🔥 FIX: Do not render anything until loading is done
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <Routes>
-          <Route path="/" element={<Navbar />} />
+      <Route path="/" element={<Navbar />} />
       <Route path="/toggle" element={<Toggle />} />
-    <Route element={<PrivateRoute />}>
-    <Route path="/image" element={<Imagesection />} />
-    <Route path='/editdata' element={<Profileedit />} />
-    <Route path="/edit" element={<Profileview />} />
-  </Route>
-</Routes>
+
+      <Route element={<PrivateRoute />}>
+        <Route path="/image" element={<Imagesection />} />
+        <Route path="/editdata" element={<Profileedit />} />
+        <Route path="/edit" element={<Profileview />} />
+      </Route>
+    </Routes>
   );
 }
+
+
 
 export default App;
