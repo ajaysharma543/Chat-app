@@ -92,7 +92,8 @@ useEffect(() => {
   const unsub = authservice.client.subscribe(
     `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteuserCollectionId}.documents`,
     (event) => {
-      if (event.events.includes("databases.*.documents.*.create")) {
+      if (event.events.includes("databases.*.documents.*.create") ||
+          event.events.includes("databases.*.documents.*.update")) {
         enrichUsersWithLastMessages();
       }
     }

@@ -66,7 +66,7 @@ async markChatAsRead(myId, otherId) {
 
   const messages = await this.Databases.listDocuments(
     conf.appwriteDatabaseId,
-    conf.appwriteuserCollectionId,   // this is MESSAGE collection (correct)
+    conf.appwriteuserCollectionId,   // MUST BE MESSAGE collection
     [
       Query.equal("chatId", chatId),
       Query.equal("senderId", otherId)
@@ -80,7 +80,7 @@ async markChatAsRead(myId, otherId) {
   for (const msg of unreadMessages) {
     await this.Databases.updateDocument(
       conf.appwriteDatabaseId,
-      conf.appwriteuserCollectionId,    // update messages here too
+      conf.appwriteuserCollectionId,  // MUST BE MESSAGE collection
       msg.$id,
       {
         readBy: [...(msg.readBy || []), myId]
