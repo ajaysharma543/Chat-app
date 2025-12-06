@@ -57,8 +57,8 @@ const enrichUsersWithLastMessages = async () => {
       const session = await authservice.getLastMessageByChatIdInProfile(chatId);
 const isUnread =
   session &&
-  session.senderId !== user.$id &&  // message sent BY other user
-  !session.readBy?.includes(user.$id); // you have NOT read it
+  session.senderId !== user.$id && // sent BY other user
+  (!session.readBy || !session.readBy.includes(user.$id));
 
       usersmessage.push({
   ...otherUser,
@@ -114,10 +114,11 @@ useEffect(() => {
       usersWithMessages.map((u) => (
     <div
   key={u.$id}
-  onClick={() => {
-    dispatch(setSelectedUser(u));
-    authservice.markChatAsRead(user.$id, u.$id);
-  }}
+onClick={async () => {
+  dispatch(setSelectedUser(u));
+  await authservice.markChatAsRead(user.$id, u.$id); // mark read
+  enrichUsersWithLastMessages(); // refresh UI immediately
+}}
   className="flex items-center space-x-3 rounded-lg cursor-pointer px-2 py-2 hover:bg-gray-800 transition"
 >
   <img
@@ -131,7 +132,7 @@ useEffect(() => {
 
     <p
       className={`text-sm truncate max-w-[200px] ${
-        u.unread ? "text-white font-semibold" : "text-gray-400"
+        u.unread ? "text-white-700 font-semibold" : "text-gray-400"
       }`}
     >
       {u.lastMessage}

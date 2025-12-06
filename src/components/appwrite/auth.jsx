@@ -60,31 +60,22 @@ listenToMessages(chatId, callback) {
     }
   );
 }
+async markChatAsRead(currentUserId, otherUserId) {
+  const chatId = [currentUserId, otherUserId].sort().join('___');
 
-async markChatAsRead(myId, otherId) {
-  const chatId = [myId, otherId].sort().join("___");
+  // get last message
+  const lastMessage = await this.getLastMessageByChatIdInProfile(chatId);
+  if (!lastMessage) return;
 
-  const messages = await this.Databases.listDocuments(
-    conf.appwriteDatabaseId,
-    conf.appwriteuserCollectionId,   // MUST BE MESSAGE collection
-    [
-      Query.equal("chatId", chatId),
-      Query.equal("senderId", otherId)
-    ]
-  );
+  const updatedReadBy = lastMessage.readBy || [];
+  if (!updatedReadBy.includes(currentUserId)) {
+    updatedReadBy.push(currentUserId);
 
-  const unreadMessages = messages.documents.filter(
-    (msg) => !msg.readBy?.includes(myId)
-  );
-
-  for (const msg of unreadMessages) {
     await this.Databases.updateDocument(
       conf.appwriteDatabaseId,
-      conf.appwriteuserCollectionId,  // MUST BE MESSAGE collection
-      msg.$id,
-      {
-        readBy: [...(msg.readBy || []), myId]
-      }
+      conf.appwriteuserCollectionId,
+      lastMessage.$id,
+      { readBy: updatedReadBy }
     );
   }
 }
