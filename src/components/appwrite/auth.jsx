@@ -44,20 +44,24 @@ async createuser(data) {
     throw error;
   }
 }
-// Inside AuthService class
 listenToMessages(chatId, callback) {
   return this.client.subscribe(
-    `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteuserCollectionId}.documents`,
+    `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteuserCollectionId}.documents.*`,
     (response) => {
-      if (
-        response.events.includes('databases.*.collections.*.documents.*.create') &&
-        response.payload.chatid === chatId
-      ) {
-        callback(response.payload); // send new message to callback
+
+      const payload = response.payload;
+
+      // Only messages in the same chat
+      if (!payload || payload.chatid !== chatId) return;
+
+      // New message
+      if (response.events.some(e => e.includes("create"))) {
+        callback(payload);
       }
     }
   );
 }
+
 
 async deleteFile(id) {
   if (!id) {
