@@ -209,7 +209,7 @@ function Chatright() {
 }
 
 // Separate component for message input
-function MessageInput({ user, selectedUser, onMessageSent }) {
+function MessageInput({ user, selectedUser }) {
   const [message, setMessage] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [file, setFile] = useState(null);
@@ -222,39 +222,43 @@ function MessageInput({ user, selectedUser, onMessageSent }) {
     reader.onload = () => setFile(reader.result);
     reader.readAsDataURL(f);
   };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!message.trim() && !imageFile) return;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!message.trim() && !imageFile) return;
+  const chatId = [user.$id, selectedUser.$id].sort().join("___");
+  const msgText = message.trim();
+  let imageId = null;
 
-    const chatId = [user.$id, selectedUser.$id].sort().join("___");
-    const msgText = message.trim();
-    let imageId = null;
+  setMessage("");
 
-    setMessage("");
-
-    try {
-      if (imageFile) {
-        const uploaded = await authservice.getfiles(imageFile);
-        if (!uploaded) throw new Error("Image upload failed");
-        imageId = uploaded.$id;
-      }
-
-       await authservice.storemessageindatabase(
-        user.$id,
-        selectedUser.$id,
-        msgText,
-        new Date().toISOString(),
-        chatId,
-        imageId
-      );
-
-      setImageFile(null);
-      setFile(null);
-    } catch (error) {
-      console.error("Failed to send message:", error);
+  try {
+    if (imageFile) {
+      const uploaded = await authservice.getfiles(imageFile);
+      if (!uploaded) throw new Error("Image upload failed");
+      imageId = uploaded.$id;
     }
-  };
+
+    await authservice.storemessageindatabase(
+      user.$id,
+      selectedUser.$id,
+      msgText,
+      new Date().toISOString(),
+      chatId,
+      imageId
+    );
+
+    setImageFile(null);
+    setFile(null);
+
+    // ❌ Remove this line:
+    // onMessageSent(saved);
+
+  } catch (error) {
+    console.error("Failed to send message:", error);
+  }
+};
+
 
   return (
     <div className="p-4">
