@@ -113,13 +113,6 @@ function Middlechats() {
       {loading && (
         <div className="text-gray-400 animate-pulse">Loading users...</div>
       )}
-
-      {/* 🔥 NO USERS */}
-      {!loading && usersWithMessages.length === 0 && (
-        <p className="text-gray-400">No other users found.</p>
-      )}
-
-      {/* 🔥 USERS LIST */}
       {!loading && usersWithMessages.length > 0 && (
         <div className="space-y-1">
           {usersWithMessages.map((u) => (
