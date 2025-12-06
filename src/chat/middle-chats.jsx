@@ -47,7 +47,6 @@ function Middlechats() {
     fetchUsers();
   }, [user]);
 
-// move function OUTSIDE useEffect so we can call it globally
 const enrichUsersWithLastMessages = async () => {
   try {
     const usersmessage = [];
@@ -55,21 +54,27 @@ const enrichUsersWithLastMessages = async () => {
     for (const otherUser of otherUsers) {
       const chatId = [user.$id, otherUser.$id].sort().join('___');
       const session = await authservice.getLastMessageByChatIdInProfile(chatId);
-const isUnread =
-  session &&
-  session.senderId !== user.$id && // sent BY other user
-  (!session.readBy || !session.readBy.includes(user.$id));
 
-      usersmessage.push({
+      let isUnread = false;
+if (session && session.senderId !== user.$id) {
+  // message sent BY other user
+  isUnread = !session.readBy?.includes(user.$id);
+} 
+
+
+   usersmessage.push({
   ...otherUser,
   lastMessage: session
     ? session.content || (session.imageid ? '📷 Image' : '')
     : 'No messages yet',
   lastMessageTime: session ? new Date(session.$createdAt) : null,
-  unread: isUnread
+  unread: session && session.senderId !== user.$id && !session.readBy?.includes(user.$id),
+  sentByMe: session && session.senderId === user.$id, // added this
 });
+
     }
 
+    // sort by last message time descending
     usersmessage.sort((a, b) => {
       if (!a.lastMessageTime) return 1;
       if (!b.lastMessageTime) return -1;
@@ -81,6 +86,8 @@ const isUnread =
     console.error('Failed to fetch enriched users:', error);
   }
 };
+
+
 
 useEffect(() => {
   enrichUsersWithLastMessages();
@@ -130,13 +137,13 @@ onClick={async () => {
   <div className="pl-1 w-full">
     <p className="text-white text-md">{u.name}</p>
 
-    <p
-      className={`text-sm truncate max-w-[200px] ${
-        u.unread ? "text-white-700 font-semibold" : "text-gray-400"
-      }`}
-    >
-      {u.lastMessage}
-    </p>
+  <p
+  className={`text-sm truncate max-w-[200px] 
+    ${u.sentByMe ? 'text-red-500 font-semibold' : ''} 
+    ${u.unread && !u.sentByMe ? 'text-gray-400 px-1 rounded' : 'text-gray-400'}`}
+>
+  {u.lastMessage}
+</p>
   </div>
 </div>
 
