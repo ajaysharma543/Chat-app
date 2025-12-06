@@ -44,20 +44,23 @@ async createuser(data) {
     throw error;
   }
 }
-// Inside AuthService class
 listenToMessages(chatId, callback) {
+  // Subscribe to all documents in messages collection
   return this.client.subscribe(
     `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteuserCollectionId}.documents`,
     (response) => {
-      if (
-        response.events.includes('databases.*.collections.*.documents.*.create') &&
-        response.payload.chatid === chatId
-      ) {
-        callback(response.payload); // send new message to callback
+      console.log("Realtime response:", response); // Debug line
+
+      if (response.events.includes('databases.*.collections.*.documents.*.create')) {
+        const newMsg = response.payload;
+        if (newMsg.chatid === chatId) {
+          callback(newMsg);
+        }
       }
     }
   );
 }
+
 
 async deleteFile(id) {
   if (!id) {
