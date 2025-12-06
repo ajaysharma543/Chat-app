@@ -240,7 +240,7 @@ function MessageInput({ user, selectedUser, onMessageSent }) {
         imageId = uploaded.$id;
       }
 
-      const saved = await authservice.storemessageindatabase(
+       await authservice.storemessageindatabase(
         user.$id,
         selectedUser.$id,
         msgText,
@@ -251,7 +251,6 @@ function MessageInput({ user, selectedUser, onMessageSent }) {
 
       setImageFile(null);
       setFile(null);
-      onMessageSent(saved);
     } catch (error) {
       console.error("Failed to send message:", error);
     }
