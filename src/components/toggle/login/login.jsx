@@ -40,7 +40,6 @@ const Login = ({ onswitch }) => {
   return (
     <div className="relative flex items-center justify-center overflow-hidden px-4">
 
-      {/* Floating background effects */}
       <span className="absolute w-72 h-72 bg-white/10 rounded-full -top-20 -left-20 animate-pulse-slow"></span>
       <span className="absolute w-60 h-60 bg-white/10 rounded-full -bottom-10 -right-10 animate-pulse-slower"></span>
 

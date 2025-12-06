@@ -47,36 +47,61 @@ function Middlechats() {
     fetchUsers();
   }, [user]);
 
-  useEffect(() => {
-    const enrichUsersWithLastMessages = async () => {
-      try {
-        const usersmessage = [];
+// move function OUTSIDE useEffect so we can call it globally
+const enrichUsersWithLastMessages = async () => {
+  try {
+    const usersmessage = [];
 
-        for (const otherUser of otherUsers) {
-          const chatId = [user.$id, otherUser.$id].sort().join('___');
-          const session = await authservice.getLastMessageByChatIdInProfile(chatId);
+    for (const otherUser of otherUsers) {
+      const chatId = [user.$id, otherUser.$id].sort().join('___');
+      const session = await authservice.getLastMessageByChatIdInProfile(chatId);
+const isUnread =
+  session &&
+  session.senderId !== user.$id &&  // message sent BY other user
+  !session.readBy?.includes(user.$id); // you have NOT read it
 
-          usersmessage.push({
-            ...otherUser,
-            lastMessage: session
-              ? session.content || (session.imageid ? '📷 Image' : '')
-              : 'No messages yet',
-          });
-        }
+      usersmessage.push({
+  ...otherUser,
+  lastMessage: session
+    ? session.content || (session.imageid ? '📷 Image' : '')
+    : 'No messages yet',
+  lastMessageTime: session ? new Date(session.$createdAt) : null,
+  unread: isUnread
+});
+    }
 
-        setUsersWithMessages(usersmessage);
-      } catch (error) {
-        console.error('Failed to fetch enriched users:', error);
+    usersmessage.sort((a, b) => {
+      if (!a.lastMessageTime) return 1;
+      if (!b.lastMessageTime) return -1;
+      return b.lastMessageTime - a.lastMessageTime;
+    });
+
+    setUsersWithMessages(usersmessage);
+  } catch (error) {
+    console.error('Failed to fetch enriched users:', error);
+  }
+};
+
+useEffect(() => {
+  enrichUsersWithLastMessages();
+  const interval = setInterval(enrichUsersWithLastMessages, 1000);
+  return () => clearInterval(interval);
+}, [user?.$id, otherUsers]);
+
+useEffect(() => {
+  const unsub = authservice.client.subscribe(
+    `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteuserCollectionId}.documents`,
+    (event) => {
+      if (event.events.includes("databases.*.documents.*.create")) {
+        enrichUsersWithLastMessages();
       }
-    };
-          enrichUsersWithLastMessages();
+    }
+  );
+
+  return () => unsub();
+}, []);
 
 
-    const interval = setInterval(enrichUsersWithLastMessages, 1000);
-    return () => clearInterval(interval);
-  }, [user?.$id, otherUsers]);
-
- 
   return (
    <div className="w-full max-h-[85vh] overflow-y-auto px-6 pt-4 text-white scrollbar-none">
   <h2 className="text-md font-semibold mb-4">Messages</h2>
@@ -86,23 +111,33 @@ function Middlechats() {
       <p className="text-gray-400">No other users found.</p>
     ) : (
       usersWithMessages.map((u) => (
-        <div
-          key={u.$id}
-          onClick={() => dispatch(setSelectedUser(u))}
-          className="flex items-center space-x-3 rounded-lg hover:bg-gray-800 cursor-pointer transition"
-        >
-          <img
-            src={`https://fra.cloud.appwrite.io/v1/storage/buckets/684297610026f3b5092c/files/${u.imageurl}/download?project=684296e5003206790aa0`}
-            alt={u.name}
-            className="w-15 h-15 rounded-full object-cover mt-2"
-          />
-          <div className="pl-3">
-            <p className="text-white text-md">{u.name}</p>
-            <p className="text-gray-400 text-sm truncate max-w-[200px]">
-              {u.lastMessage}
-            </p>
-          </div>
-        </div>
+    <div
+  key={u.$id}
+  onClick={() => {
+    dispatch(setSelectedUser(u));
+    authservice.markChatAsRead(user.$id, u.$id);
+  }}
+  className="flex items-center space-x-3 rounded-lg cursor-pointer px-2 py-2 hover:bg-gray-800 transition"
+>
+  <img
+    src={`https://fra.cloud.appwrite.io/v1/storage/buckets/684297610026f3b5092c/files/${u.imageurl}/download?project=684296e5003206790aa0`}
+    alt={u.name}
+    className="w-12 h-12 rounded-full object-cover"
+  />
+
+  <div className="pl-1 w-full">
+    <p className="text-white text-md">{u.name}</p>
+
+    <p
+      className={`text-sm truncate max-w-[200px] ${
+        u.unread ? "text-white font-semibold" : "text-gray-400"
+      }`}
+    >
+      {u.lastMessage}
+    </p>
+  </div>
+</div>
+
       ))
     )}
   </div>

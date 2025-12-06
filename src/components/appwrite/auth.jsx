@@ -61,6 +61,33 @@ listenToMessages(chatId, callback) {
   );
 }
 
+async markChatAsRead(myId, otherId) {
+  const chatId = [myId, otherId].sort().join("___");
+
+  const messages = await this.Databases.listDocuments(
+    conf.appwriteDatabaseId,
+    conf.appwriteuserCollectionId,   // this is MESSAGE collection (correct)
+    [
+      Query.equal("chatId", chatId),
+      Query.equal("senderId", otherId)
+    ]
+  );
+
+  const unreadMessages = messages.documents.filter(
+    (msg) => !msg.readBy?.includes(myId)
+  );
+
+  for (const msg of unreadMessages) {
+    await this.Databases.updateDocument(
+      conf.appwriteDatabaseId,
+      conf.appwriteuserCollectionId,    // update messages here too
+      msg.$id,
+      {
+        readBy: [...(msg.readBy || []), myId]
+      }
+    );
+  }
+}
 
 async deleteFile(id) {
   if (!id) {
