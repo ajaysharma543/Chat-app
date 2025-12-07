@@ -106,6 +106,40 @@ const selectedUser = useSelector((state) => state.auth.selectedUser);
     return () => unsub();
   }, []);
 
+  useEffect(() => {
+  if (!user) return;
+
+  const unsub = authservice.client.subscribe(
+    `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteCollectionId}.documents`,
+    (event) => {
+      // Only care about updates (status changes)
+      if (event.events.some(e => e.endsWith(".update"))) {
+        const updatedUser = event.payload;
+
+        // Update online status in otherUsers list
+        setOtherUsers((prev) =>
+          prev.map((u) =>
+            u.$id === updatedUser.$id
+              ? { ...u, status: updatedUser.status, lastseen: updatedUser.lastseen }
+              : u
+          )
+        );
+
+        // Update enriched users list
+        setUsersWithMessages((prev) =>
+          prev.map((u) =>
+            u.$id === updatedUser.$id
+              ? { ...u, status: updatedUser.status, lastseen: updatedUser.lastseen }
+              : u
+          )
+        );
+      }
+    }
+  );
+
+  return () => unsub();
+}, [user]);
+
   return (
     <div className="w-full max-h-[85vh] overflow-y-auto px-6 pt-4 text-white scrollbar-none">
       <h2 className="text-md font-semibold mb-4">Messages</h2>
