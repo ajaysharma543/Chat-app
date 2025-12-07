@@ -11,6 +11,7 @@ import Profileedit from './chat/profileedit';
 import PrivateRoute from './chat/privateroute';
 import Profileview from './chat/previewdata';
 import Loader from './chat/loader';
+import LogoutButton from './chat/setting';
 
 function App() {
   const dispatch = useDispatch();
@@ -89,6 +90,7 @@ function App() {
         <Route path="/image" element={<Imagesection />} />
         <Route path="/editdata" element={<Profileedit />} />
         <Route path="/edit" element={<Profileview />} />
+        <Route path="/logout" element={<LogoutButton />} />
       </Route>
     </Routes>
   );

@@ -19,11 +19,12 @@ function Chatleft() {
       <Home className="w-7 h-8 text-white hover:text-blue-400 transition duration-200 cursor-pointer" onClick={() => navigate("/")}/>
       <Search className="w-7 h-8 text-white hover:text-blue-400 transition duration-200 cursor-pointer" onClick={handlesearch} />
       {search && <Searchbox onClose={() => setsearch(false)}  /> }
-<MessageCircle className="w-7 h-8 text-white hover:text-blue-400 transition duration-200"  />   
+<MessageCircle className="w-7 h-8 text-white hover:text-blue-400 transition duration-200" />   
 
 <img
   src={`https://fra.cloud.appwrite.io/v1/storage/buckets/684297610026f3b5092c/files/${user?.imageurl}/download?project=684296e5003206790aa0`}
   alt="avatar"
+   onClick={() => navigate("/logout") } 
   className="w-8 h-8 rounded-full object-cover border-2 "
 />
  </div>
