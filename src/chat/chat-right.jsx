@@ -35,7 +35,6 @@ function Chatright() {
 useEffect(() => {
   if (!selectedUser) return;
 
-  // Fetch user once immediately
   const fetchUser = async () => {
     try {
       const userDoc = await authservice.Databases.getDocument(
@@ -49,9 +48,9 @@ useEffect(() => {
       console.error(err);
     }
   };
+
   fetchUser();
 
-  // Then subscribe for realtime updates
   const unsub = authservice.client.subscribe(
     `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteCollectionId}.documents.${selectedUser.$id}`,
     (event) => {
@@ -63,7 +62,7 @@ useEffect(() => {
   );
 
   return () => unsub();
-}, [selectedUser, dispatch]);
+}, [selectedUser?.$id]); // ← FIXED!!
 
 
 
