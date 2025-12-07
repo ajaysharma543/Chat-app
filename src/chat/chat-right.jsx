@@ -27,26 +27,47 @@ function Chatright() {
   const [activeDotsId, setActiveDotsId] = useState(null);
   const messagesEndRef = useRef(null);
 
+  // Scroll to last message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  useEffect(() => {
-    if (!selectedUser) return;
-    setSelectedUserState(selectedUser);
+useEffect(() => {
+  if (!selectedUser) return;
 
-    const unsub = authservice.client.subscribe(
-      `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteCollectionId}.documents.${selectedUser.$id}`,
-      (event) => {
-        if (event.events.includes("databases.*.documents.*.update")) {
-          setSelectedUserState(event.payload);
-          dispatch(setSelectedUser(event.payload));
-        }
+  // Fetch user once immediately
+  const fetchUser = async () => {
+    try {
+      const userDoc = await authservice.Databases.getDocument(
+        conf.appwriteDatabaseId,
+        conf.appwriteCollectionId,
+        selectedUser.$id
+      );
+      setSelectedUserState(userDoc);
+      dispatch(setSelectedUser(userDoc));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  fetchUser();
+
+  // Then subscribe for realtime updates
+  const unsub = authservice.client.subscribe(
+    `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteCollectionId}.documents.${selectedUser.$id}`,
+    (event) => {
+      if (event.events.some(e => e.endsWith(".update"))) {
+        setSelectedUserState(event.payload);
+        dispatch(setSelectedUser(event.payload));
       }
-    );
-    return () => unsub();
-  }, [selectedUser, dispatch]);
+    }
+  );
 
+  return () => unsub();
+}, [selectedUser, dispatch]);
+
+
+
+  // Fetch messages & listen realtime
   useEffect(() => {
     if (!user || !selectedUser) return;
     const chatId = [user.$id, selectedUser.$id].sort().join("___");

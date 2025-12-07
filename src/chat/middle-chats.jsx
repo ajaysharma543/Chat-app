@@ -14,7 +14,7 @@ const selectedUser = useSelector((state) => state.auth.selectedUser);
 
  useEffect(() => {
   const unsub = authservice.client.subscribe(
-    `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteuserCollectionId}.documents`,
+    `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteCollectionId}.documents`,
     async (event) => {
       const msg = event.payload;
 
