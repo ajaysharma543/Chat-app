@@ -124,33 +124,30 @@ const selectedUser = useSelector((state) => state.auth.selectedUser);
                 await authservice.markChatAsRead(user.$id, u.$id);
                 enrichUsersWithLastMessages();
               }}
-              className="flex items-center space-x-3 rounded-lg cursor-pointer px-2 py-2 hover:bg-gray-800 transition"
+              className="flex relative items-center space-x-3 rounded-lg cursor-pointer px-2 py-2 hover:bg-gray-800 transition"
             >
               <img
                 src={`https://fra.cloud.appwrite.io/v1/storage/buckets/684297610026f3b5092c/files/${u.imageurl}/download?project=684296e5003206790aa0`}
                 alt={u.name}
                 className="w-12 h-12 rounded-full object-cover"
               />
-
+ {u.status === "online" && (
+    <span className="absolute left-10 top-2 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900"></span>
+  )}
               <div className="pl-1 w-full">
                 <p className="text-white text-md">{u.name}</p>
 
-             <p
-  className={`text-sm truncate max-w-[200px] 
-    ${u.sentByMe
-      ? "text-gray-500"
-      : u.unread
-        ? (selectedUser?.$id === u.$id 
-            ? "text-gray-400"     // 🔥 Unread BUT this chat is open → show gray
-            : "text-white font-extrabold" // 🔥 Unread & NOT open → show white bold
-          )
-        : "text-gray-400"
-    }`
-  }
->
-  {u.lastMessage}
-</p>
-
+                <p
+                  className={`text-sm truncate max-w-[200px] ${
+                    u.sentByMe
+                      ? 'text-gray-500'
+                      : u.unread
+                      ? 'text-white font-extrabold'
+                      : 'text-gray-400'
+                  }`}
+                >
+                  {u.lastMessage}
+                </p>
               </div>
             </div>
           ))}

@@ -27,17 +27,14 @@ function Chatright() {
   const [activeDotsId, setActiveDotsId] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // Scroll to last message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Update selectedUserState when selectedUser changes
   useEffect(() => {
     if (!selectedUser) return;
     setSelectedUserState(selectedUser);
 
-    // Subscribe to Appwrite realtime for user status
     const unsub = authservice.client.subscribe(
       `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteCollectionId}.documents.${selectedUser.$id}`,
       (event) => {
@@ -50,7 +47,6 @@ function Chatright() {
     return () => unsub();
   }, [selectedUser, dispatch]);
 
-  // Fetch messages & listen realtime
   useEffect(() => {
     if (!user || !selectedUser) return;
     const chatId = [user.$id, selectedUser.$id].sort().join("___");
