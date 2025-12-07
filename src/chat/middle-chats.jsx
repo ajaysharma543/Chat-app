@@ -12,26 +12,26 @@ function Middlechats() {
   const [loading, setLoading] = useState(true); // 🔥 Added
 const selectedUser = useSelector((state) => state.auth.selectedUser);
 
-  useEffect(() => {
-    const unsub = authservice.client.subscribe(
-      `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteCollectionId}.documents`,
-      (event) => {
-        if (event.events.includes("databases.*.documents.*.update")) {
-          const updatedUser = event.payload;
+ useEffect(() => {
+  const unsub = authservice.client.subscribe(
+    `databases.${conf.appwriteDatabaseId}.collections.${conf.appwriteuserCollectionId}.documents`,
+    async (event) => {
+      const msg = event.payload;
 
-          setOtherUsers((prev) =>
-            prev.map((u) => (u.$id === updatedUser.$id ? updatedUser : u))
-          );
-
-          setUsersWithMessages((prev) =>
-            prev.map((u) => (u.$id === updatedUser.$id ? updatedUser : u))
-          );
-        }
+      // 🔥 If message belongs to open chat, auto mark as read
+      if (
+        selectedUser &&
+        ((msg.senderid === selectedUser.$id && msg.receiverid === user.$id) ||
+         (msg.receiverid === selectedUser.$id && msg.senderid === user.$id))
+      ) {
+        await authservice.markChatAsRead(user.$id, selectedUser.$id);
+        enrichUsersWithLastMessages();
       }
-    );
+    }
+  );
 
-    return () => unsub();
-  }, []);
+  return () => unsub();
+}, [selectedUser, user]);
 
   useEffect(() => {
     const fetchUsers = async () => {
