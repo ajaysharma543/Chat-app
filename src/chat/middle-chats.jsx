@@ -10,7 +10,6 @@ function Middlechats() {
   const [otherUsers, setOtherUsers] = useState([]);
   const [usersWithMessages, setUsersWithMessages] = useState([]);
   const [loading, setLoading] = useState(true); // 🔥 Added
-const selectedUser = useSelector((state) => state.auth.selectedUser);
 
   useEffect(() => {
     const unsub = authservice.client.subscribe(
@@ -135,22 +134,17 @@ const selectedUser = useSelector((state) => state.auth.selectedUser);
               <div className="pl-1 w-full">
                 <p className="text-white text-md">{u.name}</p>
 
-            <p
-  className={`text-sm truncate max-w-[200px] 
-    ${u.sentByMe
-      ? "text-gray-500" 
-      : u.unread
-        ? (selectedUser?.$id === u.$id 
-            ? "text-red-500"   // 🔥 Unread but currently open
-            : "text-white font-extrabold" // 🔥 Unread + not opened yet
-          )
-        : "text-gray-400"
-    }`
-  }
->
-  {u.lastMessage}
-</p>
-
+                <p
+                  className={`text-sm truncate max-w-[200px] ${
+                    u.sentByMe
+                      ? 'text-gray-500'
+                      : u.unread
+                      ? 'text-white font-extrabold'
+                      : 'text-gray-400'
+                  }`}
+                >
+                  {u.lastMessage}
+                </p>
               </div>
             </div>
           ))}
