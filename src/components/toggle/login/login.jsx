@@ -9,14 +9,16 @@ import { useNavigate } from 'react-router-dom';
 
 const Login = ({ onswitch }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false); // loading state
   const { register, handleSubmit } = useForm();
   const dispatch = useDispatch();
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handlelogin = async (data) => {
+    setError("");
+    setLoading(true); // start loading
     try {
-      setError("");
       const session = await authservice.login(data);
       if (session) {
         const account = await authservice.getcurrentuser();
@@ -34,12 +36,13 @@ const Login = ({ onswitch }) => {
       }
     } catch (err) {
       setError(err.message || "Login failed");
+    } finally {
+      setLoading(false); // stop loading
     }
   };
 
   return (
     <div className="relative flex items-center justify-center overflow-hidden px-4">
-
       <span className="absolute w-72 h-72 bg-white/10 rounded-full -top-20 -left-20 animate-pulse-slow"></span>
       <span className="absolute w-60 h-60 bg-white/10 rounded-full -bottom-10 -right-10 animate-pulse-slower"></span>
 
@@ -85,9 +88,11 @@ const Login = ({ onswitch }) => {
           {/* Submit */}
           <button
             type="submit"
-            className="w-full py-3 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:shadow-xl hover:scale-105 transform transition-all duration-300"
+            disabled={loading} // disable while loading
+            className={`w-full py-3 bg-teal-600 text-white font-semibold rounded-lg shadow-md transform transition-all duration-300
+              ${loading ? 'opacity-70 cursor-not-allowed animate-pulse' : 'hover:shadow-xl hover:scale-105'}`}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 

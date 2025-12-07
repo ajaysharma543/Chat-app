@@ -25,7 +25,7 @@ function Chatleft() {
   src={`https://fra.cloud.appwrite.io/v1/storage/buckets/684297610026f3b5092c/files/${user?.imageurl}/download?project=684296e5003206790aa0`}
   alt="avatar"
    onClick={() => navigate("/logout") } 
-  className="w-8 h-8 rounded-full object-cover border-2 "
+  className="w-8 h-8 rounded-full object-cover cursor-pointer border-2"
 />
  </div>
   );

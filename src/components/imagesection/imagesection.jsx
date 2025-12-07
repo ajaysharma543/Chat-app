@@ -75,7 +75,7 @@ function Imagesection() {
         <button
           onClick={handleNext}
           type="button"
-          className="w-full bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-medium py-2 rounded-lg transition-all duration-200"
+          className="w-full cursor-pointer bg-blue-500 hover:bg-blue-800 active:bg-blue-700 text-white font-medium py-2 rounded-lg transition-all duration-200"
         >
           Next
         </button>
