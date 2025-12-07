@@ -10,7 +10,6 @@ function Middlechats() {
   const [otherUsers, setOtherUsers] = useState([]);
   const [usersWithMessages, setUsersWithMessages] = useState([]);
   const [loading, setLoading] = useState(true); // 🔥 Added
-const selectedUser = useSelector((state) => state.auth.selectedUser);
 
   useEffect(() => {
     const unsub = authservice.client.subscribe(
@@ -131,9 +130,10 @@ const selectedUser = useSelector((state) => state.auth.selectedUser);
                 alt={u.name}
                 className="w-12 h-12 rounded-full object-cover"
               />
- {u.status === "online" && (
-    <span className="absolute left-10 top-2 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900"></span>
-  )}
+{u.status === "online" && (
+          <span className="absolute left-10 top-2 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900"></span>
+        )}
+
               <div className="pl-1 w-full">
                 <p className="text-white text-md">{u.name}</p>
 
